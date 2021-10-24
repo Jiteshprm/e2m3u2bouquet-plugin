@@ -1,4 +1,4 @@
-# Enigma2 IPTV m3u to bouquet plugin
+# Enigma2 IPTV m3u to bouquet plugin in Python2 & Python3
 
 Plugin fronted for e2m3u2bouquet (Enigma2 IPTV m3u parser and bouquet creator)
 
