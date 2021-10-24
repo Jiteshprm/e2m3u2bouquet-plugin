@@ -1,8 +1,12 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import os
+
+import sys
 from . import log
+
 from . import e2m3u2bouquet
+
 from enigma import eTimer
 from Components.config import config, ConfigEnableDisable, ConfigSubsection, \
 			 ConfigYesNo, ConfigClock, getConfigListEntry, ConfigText, \

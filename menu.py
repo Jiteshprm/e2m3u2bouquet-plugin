@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from __future__ import print_function
 import time
 import os
@@ -6,10 +5,17 @@ import tempfile
 import sys
 import enigma
 from . import log
-from . import plugin as E2m3u2b_Plugin
-
 from .about import E2m3u2b_About
+from . import e2m3u2bouquet
 from .providers import E2m3u2b_Providers
+
+PY3 = sys.version_info.major >= 3
+
+if PY3:
+    from . import plugin as E2m3u2b_Plugin
+else:
+    import plugin as E2m3u2b_Plugin
+
 
 from enigma import eTimer
 from Components.config import config, ConfigEnableDisable, ConfigSubsection, \
@@ -35,7 +41,7 @@ except:
     pass
 from Tools.LoadPixmap import LoadPixmap
 
-from . import e2m3u2bouquet
+#import e2m3u2bouquet
 
 try:
     import Plugins.Extensions.EPGImport.EPGImport as EPGImport
@@ -206,6 +212,7 @@ class E2m3u2b_Config(ConfigListScreen, Screen):
             if config.plugins.e2m3u2b.scheduletype.value == 'fixed time':
                 self.list.append(getConfigListEntry(2 * indent + 'Time to start update:', config.plugins.e2m3u2b.schedulefixedtime, 'Set the day of time to perform the bouquet update'))
         self.list.append(getConfigListEntry('Automatic bouquet update (when box starts):', config.plugins.e2m3u2b.autobouquetupdateatboot, 'Update bouquets at startup'))
+        self.list.append(getConfigListEntry('Picon save path:', config.plugins.e2m3u2b.iconpath, 'Select where to save picons (if download is enabled)'))
         self.list.append(getConfigListEntry('Attempt Epg Import', config.plugins.e2m3u2b.do_epgimport, 'Automatically run Epg Import after bouquet update'))
         self.list.append(getConfigListEntry('Show in extensions:', config.plugins.e2m3u2b.extensions, 'Show in extensions menu'))
         self.list.append(getConfigListEntry('Show in main menu:', config.plugins.e2m3u2b.mainmenu, 'Show in main menu'))
@@ -311,13 +318,13 @@ class E2m3u2b_Log(Screen):
 
         self["key_red"] = Button("Close")
         self["key_green"] = Button("Save")
-#        self["key_blue"] = Button("Clear")
+        self["key_blue"] = Button("Clear")
         self["list"] = ScrollLabel(log.getvalue())
         self["actions"] = ActionMap(["DirectionActions", "OkCancelActions", "ColorActions", "MenuActions"],
                                     {
                                         "red": self.keyCancel,
                                         "green": self.keySave,
-#                                        "blue": self.keyClear,
+                                        "blue": self.keyClear,
                                         "cancel": self.keyCancel,
                                         "ok": self.keyCancel,
                                         "left": self["list"].pageUp,
@@ -333,7 +340,7 @@ class E2m3u2b_Log(Screen):
         self.close(False)
 
     def keyClear(self):
-        log.logfile.reset() # this crashes Py3
+        log.logfile.reset()
         log.logfile.truncate()
         self.close(False)
 

@@ -36,26 +36,44 @@ from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 from six.moves import range
 from xml.sax.saxutils import escape
-from Components.config import config
+#from Components.config import config
 
 import six
 import requests
 
-if six.PY3:
-     from urllib.parse import urlparse, quote, parse_qs, quote_plus
+#if six.PY3:
+#     from urllib.parse import urlparse, quote, parse_qs, quote_plus
+#else:
+#     from urlparse import urlparse, quote, parse_qs, quote_plus
+
+
+PY3 = sys.version_info.major >= 3
+
+if PY3:
+    from urllib.request import urlopen, Request
+    from urllib.error import URLError, HTTPError
+    from urllib.parse import urlparse
+    from urllib.parse import urlencode, quote, quote_plus, parse_qs
+
 else:
-     from urlparse import urlparse, quote, parse_qs, quote_plus
+    from urllib2 import urlopen, Request
+    from urllib2 import URLError, HTTPError
+    from urlparse import urlparse, parse_qs
+    from urllib import urlencode, quote, quote_plus
+
 
 __all__ = []
 __version__ = '0.8.5'
 __date__ = '2017-06-04'
 __updated__ = '2020-01-28'
 
-DEBUG = config.plugins.e2m3u2b.debug.value
-def debugNotifier(configElement):
-    global DEBUG
-    DEBUG = configElement.value
-config.plugins.e2m3u2b.debug.addNotifier(debugNotifier, initial_call=False)
+DEBUG = 0
+
+#DEBUG = config.plugins.e2m3u2b.debug.value
+#def debugNotifier(configElement):
+#    global DEBUG
+#    DEBUG = configElement.value
+#config.plugins.e2m3u2b.debug.addNotifier(debugNotifier, initial_call=False)
 
 TESTRUN = 0
 

@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import os
 import sys
+
 from . import e2m3u2bouquet
 
 from Screens.Screen import Screen

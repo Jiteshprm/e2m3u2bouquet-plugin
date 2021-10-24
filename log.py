@@ -2,18 +2,22 @@
 #
 # One can simply use
 # import log
-# print("Some text", file=log)
+# print>>log, "Some text"
 # because the log unit looks enough like a file!
-
-from __future__ import print_function
 
 import sys
 import threading
+PY3 = sys.version_info.major >= 3
 
-from six.moves import cStringIO as StringIO
+if PY3:
+    import io
+    from io import StringIO
+    logfile = io.StringIO()
+else:
+    from cStringIO import StringIO
+    logfile = StringIO()
 
 
-logfile = StringIO()
 # Need to make our operations thread-safe.
 mutex = threading.Lock()
 
@@ -22,7 +26,7 @@ def write(data):
     try:
         if logfile.tell() > 2000:
             # Do a sort of 2k round robin
-            logfile.seek(0)
+            logfile.reset()
         logfile.write(data)
     finally:
         mutex.release()
@@ -33,7 +37,7 @@ def getvalue():
     try:
         pos = logfile.tell()
         head = logfile.read()
-        logfile.seek(0)
+        logfile.reset()
         tail = logfile.read(pos)
     finally:
         mutex.release()
