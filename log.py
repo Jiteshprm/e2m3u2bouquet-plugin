@@ -26,7 +26,8 @@ def write(data):
     try:
         if logfile.tell() > 2000:
             # Do a sort of 2k round robin
-            logfile.reset()
+#            logfile.reset()
+            logfile.seek(0)
         logfile.write(data)
     finally:
         mutex.release()
@@ -37,7 +38,8 @@ def getvalue():
     try:
         pos = logfile.tell()
         head = logfile.read()
-        logfile.reset()
+#        logfile.reset()
+        logfile.seek(0)
         tail = logfile.read(pos)
     finally:
         mutex.release()
