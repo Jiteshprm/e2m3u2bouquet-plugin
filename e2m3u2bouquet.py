@@ -181,6 +181,7 @@ def reload_bouquets():
     if not TESTRUN:
         print("\n----Reloading bouquets----")
         if eDVBDB:
+            eDVBDB.getInstance().reloadServicelist()
             eDVBDB.getInstance().reloadBouquets()
             print("bouquets reloaded...")
         else:
