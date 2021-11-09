@@ -227,6 +227,8 @@ def epgimport_sources(sourcefiles):
 
 
 def epgimport_done(reboot=False, epgfile=None):
+    os.system("wget -qO - http://127.0.0.1/web/servicelistreload?mode=4 > /dev/null 2>&1 &")
+    print("[EPGImport] wGET: bouquets reloaded...")
     print('[e2m3u2b] Automatic epg import finished', file=log)
 
 

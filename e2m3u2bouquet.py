@@ -183,10 +183,11 @@ def reload_bouquets():
         if eDVBDB:
             eDVBDB.getInstance().reloadServicelist()
             eDVBDB.getInstance().reloadBouquets()
-            print("bouquets reloaded...")
+            print("eDVBDB: bouquets reloaded...")
         else:
             os.system("wget -qO - http://127.0.0.1/web/servicelistreload?mode=2 > /dev/null 2>&1 &")
-            print("bouquets reloaded...")
+            os.system("wget -qO - http://127.0.0.1/web/servicelistreload?mode=4 > /dev/null 2>&1 &")
+            print("wGET: bouquets reloaded...")
 
 def xml_escape(string):
     return escape(string, {'"': '&quot;', "'": "&apos;"})
