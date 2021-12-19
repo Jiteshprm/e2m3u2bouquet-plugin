@@ -84,7 +84,7 @@ PICONSPATH = '/usr/share/enigma2/picon/'
 IMPORTED = False
 PLACEHOLDER_SERVICE = '#SERVICE 1:832:d:0:0:0:0:0:0:0:'
 
-headers = {
+myheaders = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36',
 }
 
@@ -273,7 +273,7 @@ class Provider:
                         sys.stdout.write('.')
                         sys.stdout.flush()
                 try:
-                    r = requests.get(logo_url, allow_redirects=True)
+                    r = requests.get(logo_url, headers=myheaders, allow_redirects=True)
                     if r.status_code == 200 and r.headers['Content-Type'].split(';')[0].lower().startswith("image/"):
                         with open(picon_file_path, 'wb') as f:
                             f.write(r.content)
@@ -729,7 +729,7 @@ class Provider:
         print('\n{}'.format(Status.message))
         print('provider update url = ', self.config.provider_update_url)
         try:
-            r = requests.get(self.config.provider_update_url, allow_redirects=True, verify=False) # verify=False means user created ssl certificates will be accepted
+            r = requests.get(self.config.provider_update_url, headers=myheaders, allow_redirects=True, verify=False) # verify=False means user created ssl certificates will be accepted
             if r.status_code == 200:
                 with open(filename, 'wb') as f:
                     f.write(r.content)
@@ -841,7 +841,8 @@ class Provider:
         if DEBUG:
             print("m3uurl = {}".format(self.config.m3u_url))
         try:
-            r = requests.get(self.config.m3u_url, allow_redirects=True)  # to get content after redirection
+            r = requests.get(self.config.m3u_url, headers=myheaders, allow_redirects=True)  # to get content after redirection
+#            print("[e2m3u2Bouquet] status code=%s" % r.status_code)
             if r.status_code == 200:
                 with open(filename, 'wb') as f:
                     f.write(r.content)   
@@ -852,6 +853,7 @@ class Provider:
             print(Status.message)
             filename = None
         self._m3u_file = filename      
+#        print("[e2m3u2Bouquet] filename=%s" % filename)      
 
     def parse_m3u(self):
         """core parsing routine"""
@@ -1031,7 +1033,7 @@ class Provider:
         if DEBUG:
             print("bouqueturl = {}".format(self.config.bouquet_url))
         try:
-            r = requests.get(self.config.bouquet_url, allow_redirects=True)
+            r = requests.get(self.config.bouquet_url, headers=myheaders, allow_redirects=True)
             if r.status_code == 200:
                 with open(filename, 'wb') as f:
                     f.write(r.content)
