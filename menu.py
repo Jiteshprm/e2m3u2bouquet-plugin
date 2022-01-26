@@ -180,7 +180,7 @@ class E2m3u2b_Config(ConfigListScreen, Screen):
         Screen.setTitle(self, self.setup_title)
         self.skinName = ["E2m3u2b_Config", "AutoBouquetsMaker_Setup"]
 
-        self.onChangedEntry = [ ]
+        self.onChangedEntry = []
         self.list = []
         ConfigListScreen.__init__(self, self.list, session=self.session, on_change=self.changedEntry)
 
@@ -253,7 +253,6 @@ class E2m3u2b_Config(ConfigListScreen, Screen):
                 x.value = ''
                 x.save()
 
-
     def cancelConfirm(self, result):
         if not result:
             return
@@ -266,6 +265,7 @@ class E2m3u2b_Config(ConfigListScreen, Screen):
             self.session.openWithCallback(self.cancelConfirm, MessageBox, 'Really close without saving settings?')
         else:
             self.close()
+
 
 class E2m3u2b_Status(Screen):
     skin = """
@@ -412,8 +412,7 @@ class E2m3u2b_Update(Screen):
             is_epgimport_running = self.epgimport.isImportRunning()
 
         if is_epgimport_running or e2m3u2bouquet.Status.is_running:
-            self.session.open(MessageBox, "Update still in progress. Please wait."
-                              , MessageBox.TYPE_ERROR, timeout=10, close_on_any_key=True)
+            self.session.open(MessageBox, "Update still in progress. Please wait.", MessageBox.TYPE_ERROR, timeout=10, close_on_any_key=True)
             self.close()
             return
         else:

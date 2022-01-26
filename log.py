@@ -21,6 +21,7 @@ else:
 # Need to make our operations thread-safe.
 mutex = threading.Lock()
 
+
 def write(data):
     mutex.acquire()
     try:
@@ -32,6 +33,7 @@ def write(data):
     finally:
         mutex.release()
     sys.stdout.write(data)
+
 
 def getvalue():
     mutex.acquire()

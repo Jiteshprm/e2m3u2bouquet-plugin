@@ -375,6 +375,7 @@ def update_main_menu(cfg_el):
     except Exception as e:
         print('[e2m3u2b] Failed to update main menu: ', e, file=log)
 
+
 plugin_name = 'IPTV Bouquet Maker'
 plugin_description = 'IPTV for Enigma2 - E2m3u2bouquet plugin'
 print('[e2m3u2b] add notifier')

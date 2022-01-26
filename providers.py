@@ -39,6 +39,7 @@ except:
 ENIGMAPATH = '/etc/enigma2/'
 CFGPATH = os.path.join(ENIGMAPATH, 'e2m3u2bouquet/')
 
+
 class E2m3u2b_Providers(Screen):
     skin = """
         <screen position="center,center" size="600,500">
@@ -162,6 +163,7 @@ class E2m3u2b_Providers(Screen):
             self.e2m3u2b_config.providers.pop('New', None)
         self.refresh()
 
+
 class E2m3u2b_Providers_Config(ConfigListScreen, Screen):
     skin = """
     <screen position="center,center" size="600,500">
@@ -186,7 +188,7 @@ class E2m3u2b_Providers_Config(ConfigListScreen, Screen):
         Screen.setTitle(self, self.setup_title)
         self.skinName = ["E2m3u2b_Providers_Config", "AutoBouquetsMaker_ProvidersSetup"]
 
-        self.onChangedEntry = [ ]
+        self.onChangedEntry = []
         self.list = []
         ConfigListScreen.__init__(self, self.list, session=self.session, on_change=self.changedEntry)
 
