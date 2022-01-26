@@ -62,5 +62,5 @@ of entered using the remote
 * Override file fixes
 
 #### v0.8.5 - OE-A
-* OE-A Porting Python 2 Code to Python 3
+* OE-A Porting Python 2 Code to Python 3 / Works on 2.7.18 / 3.9.6 / 3.9.7 / 3.10.1
 * Fixed by @atvcaptain , @Huevos , @BliNeR-KeY
