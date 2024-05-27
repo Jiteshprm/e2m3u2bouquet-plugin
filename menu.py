@@ -1,47 +1,25 @@
-from __future__ import print_function
-import time
+from __future__ import absolute_import, print_function
+
 import os
-import tempfile
 import sys
-import enigma
-from . import log
-from .about import E2m3u2b_About
-from . import e2m3u2bouquet
-from .providers import E2m3u2b_Providers
+import tempfile
 
-PY3 = sys.version_info.major >= 3
-
-if PY3:
-    from . import plugin as E2m3u2b_Plugin
-else:
-    import plugin as E2m3u2b_Plugin
-
-
-from enigma import eTimer
-from Components.config import config, ConfigEnableDisable, ConfigSubsection, \
-            ConfigYesNo, ConfigClock, getConfigListEntry, ConfigText, \
-            ConfigSelection, ConfigNumber, ConfigSubDict, NoSave, ConfigPassword, \
-            ConfigSelectionNumber
-from Screens.MessageBox import MessageBox
-from Screens.Screen import Screen
-from Screens.ChoiceBox import ChoiceBox
-from Components.ConfigList import ConfigListScreen
-from Components.Sources.StaticText import StaticText
 from Components.ActionMap import ActionMap
 from Components.Button import Button
-from Components.Sources.List import List
+from Components.config import config
 from Components.Label import Label
-from Components.SelectionList import SelectionList, SelectionEntryComponent
 from Components.ScrollLabel import ScrollLabel
-
-from Tools.Directories import resolveFilename, SCOPE_CURRENT_SKIN
-try:
-    from Tools.Directoires import SCOPE_ACTIVE_SKIN
-except:
-    pass
+from Components.Sources.List import List
+from enigma import eEPGCache, eTimer
+from Screens.MessageBox import MessageBox
+from Screens.Screen import Screen
+from Screens.Setup import Setup
 from Tools.LoadPixmap import LoadPixmap
 
-#import e2m3u2bouquet
+from . import _, e2m3u2bouquet, log
+from . import plugin as E2m3u2b_Plugin
+from .about import E2m3u2b_About
+from .providers import E2m3u2b_Providers
 
 try:
     import Plugins.Extensions.EPGImport.EPGImport as EPGImport
@@ -73,7 +51,7 @@ class E2m3u2b_Menu(Screen):
 
     def __init__(self, session):
         Screen.__init__(self, session)
-        Screen.setTitle(self, "IPTV Bouquet Maker")
+        self.setTitle(_("IPTV Bouquet Maker"))
         self.skinName = ['E2m3u2b_Menu', 'AutoBouquetsMaker_Menu']
 
         self.onChangedEntry = []
@@ -88,23 +66,23 @@ class E2m3u2b_Menu(Screen):
                                     'ok': self.openSelected,
                                     'menu': self.keyCancel
                                 }, -2)
-        self['key_red'] = Button('Exit')
-        self['key_green'] = Button('Run')
+        self['key_red'] = Button(_('Exit'))
+        self['key_green'] = Button(_('Run'))
         self.epgimport = None
 
         if EPGImport and config.plugins.e2m3u2b.do_epgimport.value is True:
             # skip channelfilter for IPTV
-            self.epgimport = EPGImport.EPGImport(enigma.eEPGCache.getInstance(), lambda x: True)
+            self.epgimport = EPGImport.EPGImport(eEPGCache.getInstance(), lambda x: True)
         self.createSetup()
 
     def createSetup(self):
-        l = [self.build_list_entry('Configure'),
-             self.build_list_entry('Providers'),
-             self.build_list_entry('Create Bouquets'),
-             self.build_list_entry('Status'),
-             self.build_list_entry('Reset Bouquets'),
-             self.build_list_entry('Show Log'),
-             self.build_list_entry('About')]
+        l = [self.build_list_entry(_('Configure')),
+             self.build_list_entry(_('Providers')),
+             self.build_list_entry(_('Create Bouquets')),
+             self.build_list_entry(_('Status')),
+             self.build_list_entry(_('Reset Bouquets')),
+             self.build_list_entry(_('Show Log')),
+             self.build_list_entry(_('About'))]
         self['list'].list = l
 
     def build_list_entry(self, description):
@@ -143,10 +121,7 @@ class E2m3u2b_Menu(Screen):
         """Remove any generated bouquets
         and epg importer config
         """
-        self.session.openWithCallback(self.reset_bouquets_callback, MessageBox, 'This will remove the IPTV Bouquets\n'
-                                                                                'and Epg Importer configs\n'
-                                                                                'that have been created.\n'
-                                                                                'Proceed?', MessageBox.TYPE_YESNO,
+        self.session.openWithCallback(self.reset_bouquets_callback, MessageBox, _("This will remove the IPTV Bouquets and Epg Importer configs that have been created.\nProceed?"), MessageBox.TYPE_YESNO,
                                       default=False)
 
     def reset_bouquets_callback(self, confirmed):
@@ -163,108 +138,9 @@ class E2m3u2b_Menu(Screen):
         self.close()
 
 
-class E2m3u2b_Config(ConfigListScreen, Screen):
-    skin = """
-        <screen position="center,center" size="600,500">
-        <ePixmap pixmap="skin_default/buttons/red.png" position="0,0" size="140,40" transparent="1" alphatest="on" />
-        <ePixmap pixmap="skin_default/buttons/green.png" position="140,0" size="140,40" transparent="1" alphatest="on" />
-        <widget name="key_red" position="0,0" size="140,40" valign="center" halign="center" zPosition="4"  foregroundColor="white" font="Regular;20" transparent="1" shadowColor="background" shadowOffset="-2,-2" />
-        <widget name="key_green" position="140,0" size="140,40" valign="center" halign="center" zPosition="4"  foregroundColor="white" font="Regular;20" transparent="1" shadowColor="background" shadowOffset="-2,-2" />
-        <widget name="config" position="10,60" size="590,350" scrollbarMode="showOnDemand" />
-        </screen>"""
-
+class E2m3u2b_Config(Setup):
     def __init__(self, session):
-        Screen.__init__(self, session)
-        self.session = session
-        self.setup_title = 'IPTV Bouquet Maker Configure'
-        Screen.setTitle(self, self.setup_title)
-        self.skinName = ["E2m3u2b_Config", "AutoBouquetsMaker_Setup"]
-
-        self.onChangedEntry = []
-        self.list = []
-        ConfigListScreen.__init__(self, self.list, session=self.session, on_change=self.changedEntry)
-
-        self['actions'] = ActionMap(['SetupActions', 'ColorActions', 'VirtualKeyboardActions', 'MenuActions'],
-                                    {
-                                        'ok': self.keySave,
-                                        'cancel': self.keyCancel,
-                                        'red': self.keyCancel,
-                                        'green': self.keySave,
-                                        'menu': self.keyCancel,
-                                    }, -2)
-
-        self['key_red'] = Button('Exit')
-        self['key_green'] = Button('Ok')
-        self['description'] = Label()
-
-        self.createSetup()
-
-    def createSetup(self):
-        self.editListEntry = None
-        self.list = []
-        indent = '- '
-
-        self.list.append(getConfigListEntry('Automatic bouquet update (schedule):', config.plugins.e2m3u2b.autobouquetupdate, 'Enable to update bouquets on a schedule'))
-        if config.plugins.e2m3u2b.autobouquetupdate.getValue():
-            self.list.append(getConfigListEntry(indent + "Schedule type:", config.plugins.e2m3u2b.scheduletype, 'Choose either a fixed time or an hourly update interval'))
-            if config.plugins.e2m3u2b.scheduletype.value == 'interval':
-                self.list.append(getConfigListEntry(2 * indent + 'Update interval (hours):', config.plugins.e2m3u2b.updateinterval, 'Set the number of hours between automatic bouquet updates'))
-            if config.plugins.e2m3u2b.scheduletype.value == 'fixed time':
-                self.list.append(getConfigListEntry(2 * indent + 'Time to start update:', config.plugins.e2m3u2b.schedulefixedtime, 'Set the day of time to perform the bouquet update'))
-        self.list.append(getConfigListEntry('Automatic bouquet update (when box starts):', config.plugins.e2m3u2b.autobouquetupdateatboot, 'Update bouquets at startup'))
-        self.list.append(getConfigListEntry('Picon save path:', config.plugins.e2m3u2b.iconpath, 'Select where to save picons (if download is enabled)'))
-        self.list.append(getConfigListEntry('Attempt Epg Import', config.plugins.e2m3u2b.do_epgimport, 'Automatically run Epg Import after bouquet update'))
-        self.list.append(getConfigListEntry('Show in extensions:', config.plugins.e2m3u2b.extensions, 'Show in extensions menu'))
-        self.list.append(getConfigListEntry('Show in main menu:', config.plugins.e2m3u2b.mainmenu, 'Show in main menu'))
-        self.list.append(getConfigListEntry('Debug mode:', config.plugins.e2m3u2b.debug, 'Enable debug mode. Do not enable unless requested'))
-
-        self['config'].list = self.list
-        self['config'].setList(self.list)
-
-    def changedEntry(self):
-        self.item = self['config'].getCurrent()
-        for x in self.onChangedEntry:
-            # for summary desc
-            x()
-
-        try:
-            # If an option is changed that has additional config options show or hide these options
-            if isinstance(self['config'].getCurrent()[1], ConfigYesNo) or isinstance(self['config'].getCurrent()[1], ConfigSelection):
-                self.createSetup()
-        except:
-            pass
-
-    def keySave(self):
-        self.saveAll()
-        self.reset_legacy_config()
-        config.plugins.e2m3u2b.cfglevel.value = '2'
-        config.plugins.e2m3u2b.cfglevel.save()
-        self.close()
-
-    def reset_legacy_config(self):
-        if config.plugins.e2m3u2b.cfglevel.value == '1':
-            cfg_list = [config.plugins.e2m3u2b.providername, config.plugins.e2m3u2b.username,
-                        config.plugins.e2m3u2b.password, config.plugins.e2m3u2b.iptvtypes,
-                        config.plugins.e2m3u2b.multivod, config.plugins.e2m3u2b.bouquetpos,
-                        config.plugins.e2m3u2b.allbouquet, config.plugins.e2m3u2b.picons,
-                        config.plugins.e2m3u2b.srefoverride, config.plugins.e2m3u2b.bouquetdownload,
-                        config.plugins.e2m3u2b.last_provider_update]
-            for x in cfg_list:
-                x.value = ''
-                x.save()
-
-    def cancelConfirm(self, result):
-        if not result:
-            return
-        for x in self['config'].list:
-            x[1].cancel()
-        self.close()
-
-    def keyCancel(self):
-        if self['config'].isChanged():
-            self.session.openWithCallback(self.cancelConfirm, MessageBox, 'Really close without saving settings?')
-        else:
-            self.close()
+        Setup.__init__(self, session, "E2m3u2b_Config", plugin="Extensions/E2m3u2bouquet", PluginLanguageDomain="E2m3u2bouquet")
 
 
 class E2m3u2b_Status(Screen):
@@ -289,10 +165,10 @@ class E2m3u2b_Status(Screen):
                                         "cancel": self.keyCancel,
                                         "menu": self.keyCancel
                                     }, -2)
-        self["key_red"] = Button("Close")
+        self["key_red"] = Button(_("Close"))
 
         if config.plugins.e2m3u2b.last_update:
-            self["about"].setText('Last channel update: {}'.format(config.plugins.e2m3u2b.last_update.value))
+            self["about"].setText(_('Last channel update: {}').format(config.plugins.e2m3u2b.last_update.value))
 
     def keyCancel(self):
         self.close()
@@ -316,15 +192,15 @@ class E2m3u2b_Log(Screen):
         Screen.setTitle(self, "IPTV Bouquet Maker - Log")
         self.skinName = ["E2m3u2b_Log", "AutoBouquetsMaker_Log"]
 
-        self["key_red"] = Button("Close")
-        self["key_green"] = Button("Save")
-        self["key_blue"] = Button("Clear")
+        self["key_red"] = Button(_("Close"))
+        self["key_green"] = Button(_("Save"))
+#        self["key_blue"] = Button("Clear")
         self["list"] = ScrollLabel(log.getvalue())
         self["actions"] = ActionMap(["DirectionActions", "OkCancelActions", "ColorActions", "MenuActions"],
                                     {
                                         "red": self.keyCancel,
                                         "green": self.keySave,
-                                        "blue": self.keyClear,
+#                                        "blue": self.keyClear,
                                         "cancel": self.keyCancel,
                                         "ok": self.keyCancel,
                                         "left": self["list"].pageUp,
@@ -340,7 +216,7 @@ class E2m3u2b_Log(Screen):
         self.close(False)
 
     def keyClear(self):
-        log.logfile.reset()
+        log.logfile.reset()  # this crashes Py3
         log.logfile.truncate()
         self.close(False)
 
@@ -349,7 +225,7 @@ class E2m3u2b_Log(Screen):
         filename = os.path.join(path, 'e2m3u2bouquet.log')
         with open(filename, 'w') as f:
             f.write(log.getvalue())
-        self.session.open(MessageBox, 'Log file has been saved to the tmp directory', MessageBox.TYPE_INFO, timeout=30)
+        self.session.open(MessageBox, _('Log file has been saved to the tmp directory'), MessageBox.TYPE_INFO, timeout=30)
 
 
 class E2m3u2b_Update(Screen):
@@ -373,10 +249,10 @@ class E2m3u2b_Update(Screen):
                                         "cancel": self.keyCancel,
                                         "menu": self.keyCancel
                                     }, -2)
-        self["key_red"] = Button("Close")
+        self["key_red"] = Button(_("Close"))
 
         self['about'] = Label()
-        self['about'].setText('Starting...')
+        self['about'].setText(_('Starting...'))
 
         self.activityTimer = eTimer()
         try:
@@ -412,13 +288,13 @@ class E2m3u2b_Update(Screen):
             is_epgimport_running = self.epgimport.isImportRunning()
 
         if is_epgimport_running or e2m3u2bouquet.Status.is_running:
-            self.session.open(MessageBox, "Update still in progress. Please wait.", MessageBox.TYPE_ERROR, timeout=10, close_on_any_key=True)
+            self.session.open(MessageBox, _("Update still in progress. Please wait."), MessageBox.TYPE_ERROR, timeout=10, close_on_any_key=True)
             self.close()
             return
         else:
-            self.session.openWithCallback(self.manual_update_callback, MessageBox, "Update of channels will start.\n"
+            self.session.openWithCallback(self.manual_update_callback, MessageBox, _("Update of channels will start.\n"
                                           "This may take a few minutes.\n"
-                                          "Proceed?", MessageBox.TYPE_YESNO,
+                                          "Proceed?"), MessageBox.TYPE_YESNO,
                                           timeout=15, default=True)
 
     def manual_update_callback(self, confirmed):
@@ -440,7 +316,7 @@ class E2m3u2b_Update(Screen):
         self['about'].setText(e2m3u2bouquet.Status.message)
 
         if self.epgimport and self.epgimport.isImportRunning():
-            self['about'].setText('EPG Import: Importing {} {} events'.format(self.epgimport.source.description,
+            self['about'].setText(_('EPG Import: Importing {} {} events').format(self.epgimport.source.description,
                                                                               self.epgimport.eventCount))
 
 
@@ -452,7 +328,7 @@ class E2m3u2b_Check(Screen):
 
     def epimport_check(self):
         if EPGImport is None:
-            self.session.open(MessageBox, 'EPG Import not found\nPlease install the EPG Import plugin',
+            self.session.open(MessageBox, _('EPG Import not found\nPlease install the EPG Import plugin'),
                               MessageBox.TYPE_WARNING, timeout=10)
             self.close()
 

@@ -1,5 +1,4 @@
-# Enigma2 IPTV m3u to bouquet plugin in Python2 & Python3
-# Working OE-A 4.4 / 5.0 / 5.1 - OPENPLI 8.1
+# Enigma2 IPTV m3u to bouquet plugin
 
 Plugin fronted for e2m3u2bouquet (Enigma2 IPTV m3u parser and bouquet creator)
 
@@ -61,6 +60,8 @@ of entered using the remote
 * Unicode fixes
 * Override file fixes
 
-#### v0.8.5 - OE-A
-* OE-A Porting Python 2 Code to Python 3 / Works on 2.7.18 / 3.9.6 / 3.9.7 / 3.10.1 / 3.10.2
-* Fixed by @atvcaptain , @Huevos , @BliNeR-KeY
+#### v0.9.0
+* PEP8
+* improve imports
+* use setup.xml
+* remove legacy config

@@ -1,21 +1,17 @@
-from __future__ import absolute_import
-import os
-import sys
-
-from . import e2m3u2bouquet
-
-from Screens.Screen import Screen
-from Components.Label import Label
 from Components.ActionMap import ActionMap
 from Components.Button import Button
+from Components.Label import Label
+from Screens.Screen import Screen
+
+from . import e2m3u2bouquet
 
 
 class E2m3u2b_About(Screen):
     skin = """
     <screen position="center,center" size="600,500">
-        <widget name="key_red" position="0,0" size="140,40" valign="center" halign="center" zPosition="5"  foregroundColor="white" font="Regular;20" transparent="1" shadowColor="background" shadowOffset="-2,-2" />
+        <widget name="key_red" position="0,0" size="140,40" valign="center" halign="center" zPosition="5"  foregroundColor="white" font="Regular;20" transparent="1" shadowColor="background" shadowOffset="-2,-2" />        
         <ePixmap pixmap="skin_default/buttons/red.png" position="0,0" size="140,40" transparent="1" alphatest="on" />
-        <widget name="about" position="10,50" size="580,430" font="Regular;18"/>
+        <widget name="about" position="10,50" size="580,430" font="Regular;18"/>                    
     </screen>
     """
 
