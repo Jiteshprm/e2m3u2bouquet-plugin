@@ -21,7 +21,7 @@ import tempfile
 import glob
 import hashlib
 import socket
-from PIL import Image
+# from PIL import Image
 from collections import OrderedDict
 try:
 	import xml.etree.cElementTree as ET
@@ -50,7 +50,7 @@ __version__ = '0.9.1'
 __date__ = '2017-06-04'
 __updated__ = '2022-12-29'
 
-DEBUG = 0
+DEBUG = 1
 
 #DEBUG = config.plugins.e2m3u2b.debug.value
 #def debugNotifier(configElement):
@@ -58,7 +58,7 @@ DEBUG = 0
 #    DEBUG = configElement.value
 #config.plugins.e2m3u2b.debug.addNotifier(debugNotifier, initial_call=False)
 
-TESTRUN = 0
+TESTRUN = 1
 
 ENIGMAPATH = '/etc/enigma2/'
 EPGIMPORTPATH = '/etc/epgimport/'
@@ -825,6 +825,7 @@ class Provider:
 		path = tempfile.gettempdir()
 		filename = os.path.join(path, 'e2m3u2bouquet.m3u')
 		self._update_status('----Downloading m3u file----')
+		print(f"Downloading to {filename}")
 
 		print("\n{}".format(Status.message))
 		if DEBUG:
@@ -1730,9 +1731,9 @@ USAGE
 
 if __name__ == "__main__":
 	if TESTRUN:
-		EPGIMPORTPATH = "H:/Satelite Stuff/epgimport/"
-		ENIGMAPATH = "H:/Satelite Stuff/enigma2/"
-		PICONSPATH = "H:/Satelite Stuff/picons/"
+		EPGIMPORTPATH = "work/epgimport/"
+		ENIGMAPATH = "work/enigma2/"
+		PICONSPATH = "work/picons/"
 		CFGPATH = os.path.join(ENIGMAPATH, 'e2m3u2bouquet/')
 	sys.exit(main())
 else:
