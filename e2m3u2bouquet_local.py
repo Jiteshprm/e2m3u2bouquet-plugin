@@ -21,8 +21,7 @@ import tempfile
 import glob
 import hashlib
 import socket
-import traceback
-from PIL import Image
+# from PIL import Image
 from collections import OrderedDict
 try:
 	import xml.etree.cElementTree as ET
@@ -47,11 +46,11 @@ else:
 	from urlparse import urlparse, quote, parse_qs, quote_plus
 
 __all__ = []
-__version__ = '0.9.2'
+__version__ = '0.9.1'
 __date__ = '2017-06-04'
-__updated__ = '2025-01-17'
+__updated__ = '2022-12-29'
 
-DEBUG = 0
+DEBUG = 1
 
 #DEBUG = config.plugins.e2m3u2b.debug.value
 #def debugNotifier(configElement):
@@ -59,7 +58,7 @@ DEBUG = 0
 #    DEBUG = configElement.value
 #config.plugins.e2m3u2b.debug.addNotifier(debugNotifier, initial_call=False)
 
-TESTRUN = 0
+TESTRUN = 1
 
 ENIGMAPATH = '/etc/enigma2/'
 EPGIMPORTPATH = '/etc/epgimport/'
@@ -334,7 +333,7 @@ class Provider:
 		if isinstance(name, six.text_type):
 			name = name.encode('utf-8')
 		name = unicodedata.normalize('NFKD', six.text_type(name, 'utf_8', errors='ignore')).encode('ASCII', 'ignore')
-		name = re.sub(b'[\\W]', b'', name.replace(b'&', b'and')
+		name = re.sub(b'[\W]', b'', name.replace(b'&', b'and')
 					  .replace(b'+', b'plus')
 					  .replace(b'*', b'star')
 					  .lower())
@@ -373,7 +372,7 @@ class Provider:
 		root, ext = os.path.splitext(parsed_stream_url.path)
 
 		# check for vod streams ending .*.m3u8 e.g. 2345.mp4.m3u8
-		is_m3u8_vod = re.search('\\.[^/]+\\.m3u8$', parsed_stream_url.path)
+		is_m3u8_vod = re.search('\.[^/]+\.m3u8$', parsed_stream_url.path)
 
 		if (parsed_stream_url.path.endswith('ts') or parsed_stream_url.path.endswith('.m3u8')) \
 				or not ext \
@@ -713,11 +712,7 @@ class Provider:
 		"""Download provider update file from url"""
 		updated = False
 
-		if len(self.config.tmp_folder)>0:
-			path = self.config.tmp_folder
-		else:
-			path = tempfile.gettempdir()
-
+		path = tempfile.gettempdir()
 		filename = os.path.join(path, 'provider-{}-update.txt'.format(self.config.name))
 		self._update_status('----Downloading providers update file----')
 		print('\n{}'.format(Status.message))
@@ -769,10 +764,6 @@ class Provider:
 			self.config.icon_path = PICONSPATH
 		if self.config.name is None:
 			self.config.name = "E2m3u2Bouquet"
-		if self.config.tmp_folder is None:
-			self.config.tmp_folder = ''
-		if self.config.max_lines is None:
-			self.config.max_lines = ''
 
 		# If no username or password supplied extract them from m3u_url
 		if (self.config.username is None) or (self.config.password is None):
@@ -831,19 +822,10 @@ class Provider:
 
 	def download_m3u(self):
 		"""Download m3u file from url"""
-
-		if "http" not in self.config.m3u_url:
-			self._m3u_file = self.config.m3u_url
-			self._update_status(f'----Using m3u file at {self._m3u_file}----')
-			return
-
-		if len(self.config.tmp_folder)>0:
-			path = self.config.tmp_folder
-		else:
-			path = tempfile.gettempdir()
-
+		path = tempfile.gettempdir()
 		filename = os.path.join(path, 'e2m3u2bouquet.m3u')
 		self._update_status('----Downloading m3u file----')
+		print(f"Downloading to {filename}")
 
 		print("\n{}".format(Status.message))
 		if DEBUG:
@@ -851,7 +833,6 @@ class Provider:
 		try:
 			r = requests.get(self.config.m3u_url, headers=myheaders, allow_redirects=True)  # to get content after redirection
 			print("[e2m3u2Bouquet] status code=%s" % r.status_code)
-			print("[e2m3u2Bouquet] filename=%s" % filename)
 			if r.status_code == 200:
 				with open(filename, 'wb') as f:
 					f.write(r.content)
@@ -859,8 +840,6 @@ class Provider:
 				filename = None
 		except Exception as e:
 			self._update_status('Unable to download m3u file from url')
-			print("Failed to download m3u file: %s", e)
-			print("Full traceback:\n%s", traceback.format_exc())
 			print(Status.message)
 			filename = None
 		self._m3u_file = filename
@@ -892,7 +871,6 @@ class Provider:
 		service_dict = {}
 		valid_services_found = False
 		service_valid = False
-		line_count = 0
 
 		with open(self._m3u_file, "r") as f:
 			for line in f:
@@ -902,8 +880,6 @@ class Provider:
 					# if can't parse as utf-8 encode back to ascii removing illegal chars
 					line = line.decode('ascii', 'ignore').encode('ascii')
 					# line = unicodedata.normalize('NFKD', unicode(line, 'utf_8', errors='ignore')).encode('ASCII', 'ignore')
-
-				line_count = line_count + 1
 
 				if 'EXTM3U' in line or (line.startswith('#') and not line.startswith('#EXTINF')):  # First line or comments we are not interested
 					continue
@@ -949,13 +925,7 @@ class Provider:
 					else:
 						self._dictchannels[service_dict['group-title']].append(service_dict)
 
-					if len(self.config.max_lines) > 0:
-						if line_count > int(self.config.max_lines):
-							msg = "Line Count specified reached : " + self.config.max_lines
-							print(msg)
-							break
-
-		if not valid_services_found:
+			if not valid_services_found:
 				msg = "No extended playlist info found. Check m3u url should be 'type=m3u_plus'"
 				print(msg)
 				if DEBUG:
@@ -1046,11 +1016,7 @@ class Provider:
 	def download_panel_bouquet(self):
 		"""Download panel bouquet file from url
 		"""
-		if len(self.config.tmp_folder)>0:
-			path = self.config.tmp_folder
-		else:
-			path = tempfile.gettempdir()
-
+		path = tempfile.gettempdir()
 		filename = os.path.join(path, 'userbouquet.panel.tv')
 		self._update_status('---Downloading providers bouquet file----')
 		print('\n{}'.format(Status.message))
@@ -1635,10 +1601,6 @@ def get_parser_args(program_license, program_version_message):
 						help='Download providers bouquet (use default url) - to map custom service references')
 	parser.add_argument('-bt', '--bouquettop', dest='bouquettop', action='store_true',
 						help='Place IPTV bouquets at top')
-	parser.add_argument('-t', '--tmpfolder', dest='tmpfolder', action='store',
-                        help='Temp folder path, default /tmp')
-	parser.add_argument('-l', '--maxlines', dest='maxlines', action='store',
-                        help='Maximum lines from the m3u to parse')
 	parser.add_argument('-U', '--uninstall', dest='uninstall', action='store_true',
 						help='Uninstall all changes made by this script')
 	parser.add_argument('-V', '--version', action='version', version=program_version_message)
@@ -1705,8 +1667,6 @@ USAGE
 		args_config.password = args.password
 		args_config.streamtype_tv = args.sttv
 		args_config.streamtype_vod = args.stvod
-		args_config.tmp_folder=args.tmpfolder
-		args_config.max_lines=args.maxlines
 
 		if args_config.m3u_url:
 			print('\n**************************************')
@@ -1771,9 +1731,9 @@ USAGE
 
 if __name__ == "__main__":
 	if TESTRUN:
-		EPGIMPORTPATH = "H:/Satelite Stuff/epgimport/"
-		ENIGMAPATH = "H:/Satelite Stuff/enigma2/"
-		PICONSPATH = "H:/Satelite Stuff/picons/"
+		EPGIMPORTPATH = "work/epgimport/"
+		ENIGMAPATH = "work/enigma2/"
+		PICONSPATH = "work/picons/"
 		CFGPATH = os.path.join(ENIGMAPATH, 'e2m3u2bouquet/')
 	sys.exit(main())
 else:

@@ -21,7 +21,6 @@ import tempfile
 import glob
 import hashlib
 import socket
-import traceback
 from PIL import Image
 from collections import OrderedDict
 try:
@@ -851,7 +850,6 @@ class Provider:
 		try:
 			r = requests.get(self.config.m3u_url, headers=myheaders, allow_redirects=True)  # to get content after redirection
 			print("[e2m3u2Bouquet] status code=%s" % r.status_code)
-			print("[e2m3u2Bouquet] filename=%s" % filename)
 			if r.status_code == 200:
 				with open(filename, 'wb') as f:
 					f.write(r.content)
@@ -859,8 +857,6 @@ class Provider:
 				filename = None
 		except Exception as e:
 			self._update_status('Unable to download m3u file from url')
-			print("Failed to download m3u file: %s", e)
-			print("Full traceback:\n%s", traceback.format_exc())
 			print(Status.message)
 			filename = None
 		self._m3u_file = filename
